@@ -1,0 +1,36 @@
+name: Extract Deadlines
+
+on:
+  repository_dispatch:
+    types: [document-indexed]
+  workflow_dispatch:
+    inputs:
+      document_id:
+        description: "Document UUID"
+        required: true
+      firm_id:
+        description: "Firm UUID"
+        required: true
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Extract deadlines
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          DOCUMENT_ID: ${{ github.event.client_payload.document_id || inputs.document_id }}
+          FIRM_ID: ${{ github.event.client_payload.firm_id || inputs.firm_id }}
+        run: python backend/scripts/extract_deadlines.py

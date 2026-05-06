@@ -1,0 +1,42 @@
+[
+  {
+    "question": "¿Cuál es el plazo para impugnar una decisión del directorio según el estatuto?",
+    "ground_truth": "El plazo para impugnar decisiones del directorio es de 30 días hábiles desde la notificación fehaciente al accionista."
+  },
+  {
+    "question": "¿Qué obligaciones tiene el locatario respecto al mantenimiento del inmueble?",
+    "ground_truth": "El locatario debe mantener el inmueble en el estado en que lo recibió, realizando las reparaciones menores a su cargo y notificando al locador sobre daños que requieran reparaciones mayores."
+  },
+  {
+    "question": "¿Cuál es la indemnización pactada por incumplimiento del contrato de servicios?",
+    "ground_truth": "La cláusula penal establece una indemnización equivalente al 20% del valor total del contrato por cada mes de incumplimiento, con tope del 100% del valor contractual."
+  },
+  {
+    "question": "¿Bajo qué condiciones puede rescindirse el contrato de trabajo por justa causa?",
+    "ground_truth": "El empleador puede rescindir el contrato por justa causa ante injuria grave del trabajador, incluyendo inasistencias reiteradas, violación de confidencialidad o conducta indebida comprobada."
+  },
+  {
+    "question": "¿Qué tribunal es competente para resolver los conflictos derivados del contrato?",
+    "ground_truth": "Las partes acuerdan la jurisdicción exclusiva de los Tribunales Ordinarios de la Ciudad Autónoma de Buenos Aires para resolver cualquier controversia."
+  },
+  {
+    "question": "¿Cuál es el capital social de la sociedad y cómo está distribuido entre los socios?",
+    "ground_truth": "El capital social es de $5.000.000 (cinco millones de pesos), dividido en 5.000 cuotas de $1.000 cada una, distribuidas en partes iguales entre los dos socios fundadores."
+  },
+  {
+    "question": "¿Qué garantías ofrece el vendedor respecto al saneamiento del inmueble?",
+    "ground_truth": "El vendedor garantiza la transferencia libre de gravámenes, hipotecas e inhibiciones, respondiendo por evicción conforme al Código Civil y Comercial de la Nación."
+  },
+  {
+    "question": "¿Cuáles son las causales de resolución del acuerdo de confidencialidad?",
+    "ground_truth": "El acuerdo se resuelve automáticamente si la información se hace pública por causas ajenas a las partes, si existe obligación legal de divulgarla, o por mutuo acuerdo documentado."
+  },
+  {
+    "question": "¿Qué porcentaje de las utilidades se destina a la reserva legal?",
+    "ground_truth": "Se destina el 5% de las utilidades netas anuales a la reserva legal hasta alcanzar el 20% del capital social, conforme al artículo 70 de la Ley 19.550."
+  },
+  {
+    "question": "¿Cuál es el domicilio constituido por las partes para notificaciones?",
+    "ground_truth": "La parte actora constituye domicilio en Av. Corrientes 1234 Piso 3, CABA, y la parte demandada en Av. Santa Fe 4567 Piso 2, CABA, donde serán válidas todas las notificaciones judiciales y extrajudiciales."
+  }
+]

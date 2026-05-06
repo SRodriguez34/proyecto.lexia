@@ -1,0 +1,55 @@
+name: Evaluate RAG Quality
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"    # Weekly, Monday 6am UTC
+  workflow_dispatch: {}
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run RAGAS evaluation
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+        run: python backend/scripts/evaluate_rag.py
+
+      - name: Upload evaluation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: rag-evaluation-report
+          path: backend/scripts/rag_report.json
+          retention-days: 30
+
+      - name: Create issue on quality regression
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## RAG Quality Regression Detected\n\nOne or more RAGAS metrics fell below the 0.7 threshold. Review the artifact for full details.';
+            try {
+              const report = JSON.parse(fs.readFileSync('backend/scripts/rag_report.json', 'utf8'));
+              body += '\n\n### Scores\n```json\n' + JSON.stringify(report, null, 2) + '\n```';
+            } catch {}
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[LEXIA] RAG quality regression — ${new Date().toISOString().split('T')[0]}`,
+              body,
+              labels: ['rag-quality', 'automated'],
+            });

@@ -1,0 +1,53 @@
+name: Ingest Documents
+
+on:
+  workflow_dispatch:
+    inputs:
+      document_url:
+        description: "URL of the document to ingest"
+        required: true
+      document_name:
+        description: "Filename for the document"
+        required: true
+      firm_id:
+        description: "Firm UUID"
+        required: true
+      matter_id:
+        description: "Matter UUID (optional)"
+        required: false
+        default: ""
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run ingestion script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+          DOCUMENT_URL: ${{ inputs.document_url }}
+          DOCUMENT_NAME: ${{ inputs.document_name }}
+          FIRM_ID: ${{ inputs.firm_id }}
+          MATTER_ID: ${{ inputs.matter_id }}
+        run: python backend/scripts/ingest_document.py
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          FIRM_ID: ${{ inputs.firm_id }}
+        run: python backend/scripts/notify_failure.py
