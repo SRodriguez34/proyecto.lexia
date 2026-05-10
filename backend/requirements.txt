@@ -3,8 +3,8 @@ uvicorn[standard]==0.32.1
 python-multipart==0.0.12
 supabase==2.10.0
 voyageai==0.2.4
-# GROK — SDK openai apuntando a xAI. Para volver a Gemini: reemplazar por google-generativeai==0.8.4
-openai>=1.30.0
+# GEMINI — proveedor LLM activo. Para cambiar a Grok: reemplazar por openai>=1.30.0
+google-generativeai==0.8.4
 cohere==5.11.4
 llama-index==0.12.0
 llama-index-embeddings-voyageai==0.3.1
