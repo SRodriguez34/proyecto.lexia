@@ -11,12 +11,12 @@ interface Props {
 type UploadStatus = "idle" | "uploading" | "processing" | "indexing" | "done" | "error";
 
 const STATUS_LABELS: Record<UploadStatus, string> = {
-  idle: "",
-  uploading: "Subiendo...",
+  idle:       "",
+  uploading:  "Subiendo...",
   processing: "Procesando...",
-  indexing: "Indexando...",
-  done: "Listo",
-  error: "Error",
+  indexing:   "Indexando...",
+  done:       "Listo",
+  error:      "Error",
 };
 
 const STATUS_STEPS: UploadStatus[] = ["uploading", "processing", "indexing", "done"];
@@ -72,30 +72,32 @@ export function DocumentUpload({ matterId, onUploaded }: Props) {
         onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
-        className={`border-2 border-dashed p-8 text-center cursor-pointer transition ${
-          dragging ? "border-[#F59E0B] bg-[#F59E0B]/5" : "border-[#1E2A3D] hover:border-[#94A3B8]"
+        className={`border-2 border-dashed p-8 text-center cursor-pointer rounded-lg transition-colors ${
+          dragging
+            ? "border-gold bg-gold/5"
+            : "border-[var(--color-border)] hover:border-slate"
         } ${status !== "idle" ? "pointer-events-none" : ""}`}
       >
         {status === "idle" && (
           <>
-            <p className="text-[#94A3B8] text-sm">Arrastrá un archivo o hacé click para seleccionar</p>
-            <p className="text-[#94A3B8] text-xs mt-1">PDF, DOCX — máx. 50MB</p>
+            <p className="text-slate text-sm font-body">Arrastrá un archivo o hacé click para seleccionar</p>
+            <p className="text-slate-dark text-xs font-body mt-1">PDF, DOCX — máx. 50MB</p>
           </>
         )}
         {status !== "idle" && status !== "error" && (
           <div className="space-y-3">
-            <p className="text-sm text-[#F59E0B]">{STATUS_LABELS[status]}</p>
+            <p className="text-sm font-body text-gold">{STATUS_LABELS[status]}</p>
             <div className="flex justify-center gap-2">
               {STATUS_STEPS.map((step, i) => (
                 <div key={step} className="flex items-center gap-2">
                   <div
                     className={`w-2 h-2 rounded-full ${
-                      i < currentStepIdx ? "bg-green-400" :
-                      i === currentStepIdx ? "bg-[#F59E0B] animate-pulse" :
-                      "bg-[#1E2A3D]"
+                      i < currentStepIdx  ? "bg-green-400" :
+                      i === currentStepIdx ? "bg-gold animate-pulse" :
+                      "bg-navy-light"
                     }`}
                   />
-                  <span className={`text-xs ${i <= currentStepIdx ? "text-[#F1F5F9]" : "text-[#94A3B8]"}`}>
+                  <span className={`text-xs font-body ${i <= currentStepIdx ? "text-cream" : "text-slate"}`}>
                     {STATUS_LABELS[step]}
                   </span>
                 </div>
@@ -105,10 +107,10 @@ export function DocumentUpload({ matterId, onUploaded }: Props) {
         )}
         {status === "error" && (
           <div>
-            <p className="text-red-400 text-sm">{errorMsg}</p>
+            <p className="text-red-400 text-sm font-body">{errorMsg}</p>
             <button
               onClick={(e) => { e.stopPropagation(); setStatus("idle"); }}
-              className="mt-2 text-xs text-[#F59E0B] underline"
+              className="mt-2 text-xs font-body text-gold underline"
             >
               Reintentar
             </button>

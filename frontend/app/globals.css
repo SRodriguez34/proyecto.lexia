@@ -1,41 +1,70 @@
 @import "tailwindcss";
 
+/* ─── Design Tokens ─────────────────────────────────────────── */
 :root {
-  --navy: #0A0F1E;
-  --navy-light: #111827;
-  --navy-border: #1E2A3D;
-  --amber: #F59E0B;
-  --amber-dim: #92400E;
-  --text-primary: #F1F5F9;
-  --text-secondary: #94A3B8;
-  --background: var(--navy);
-  --foreground: var(--text-primary);
+  /* Primarios */
+  --color-primary:        #0A1628;
+  --color-secondary:      #1A2F4A;
+  --color-surface:        #243450;
+
+  /* Acento */
+  --color-accent:         #C9A84C;
+  --color-accent-soft:    #E8C97A;
+
+  /* Texto */
+  --color-text-primary:   #F0EDE8;
+  --color-text-secondary: #9BA8BC;
+  --color-text-muted:     #5C6B82;
+
+  /* Estado */
+  --color-success:        #22C55E;
+  --color-warning:        #F59E0B;
+  --color-error:          #EF4444;
+
+  /* Bordes */
+  --color-border:         rgba(201, 168, 76, 0.15);
+  --color-border-hover:   rgba(201, 168, 76, 0.35);
 }
 
+/* ─── Tailwind Color Tokens ─────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-navy: #0A0F1E;
-  --color-navy-light: #111827;
-  --color-navy-border: #1E2A3D;
-  --color-amber: #F59E0B;
+  --color-navy:        #0A1628;
+  --color-navy-mid:    #1A2F4A;
+  --color-navy-light:  #243450;
+  --color-gold:        #C9A84C;
+  --color-gold-soft:   #E8C97A;
+  --color-cream:       #F0EDE8;
+  --color-slate:       #9BA8BC;
+  --color-slate-dark:  #5C6B82;
+  --color-background:  #0A1628;
+  --color-foreground:  #F0EDE8;
 }
 
+/* ─── Tailwind Font Tokens (runtime vars from next/font) ─────── */
+@theme {
+  --font-display: var(--font-playfair);
+  --font-body:    var(--font-ibm-sans);
+  --font-mono:    var(--font-ibm-mono);
+}
+
+/* ─── Base Styles ────────────────────────────────────────────── */
 body {
-  background: var(--navy);
-  color: var(--text-primary);
-  font-family: "Inter", system-ui, sans-serif;
+  background: var(--color-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-ibm-sans, 'IBM Plex Sans', system-ui, sans-serif);
+  line-height: 1.7;
 }
 
-code, pre, .mono {
-  font-family: "JetBrains Mono", "Fira Code", monospace;
-}
-
-h1, h2, h3 {
-  font-family: "Georgia", "Times New Roman", serif;
+h1, h2, h3, h4 {
+  font-family: var(--font-playfair, 'Playfair Display', Georgia, serif);
   letter-spacing: -0.02em;
 }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--navy); }
-::-webkit-scrollbar-thumb { background: var(--navy-border); border-radius: 3px; }
+code, pre, .mono {
+  font-family: var(--font-ibm-mono, 'IBM Plex Mono', monospace);
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-primary); }
+::-webkit-scrollbar-thumb { background: var(--color-surface); border-radius: 3px; }

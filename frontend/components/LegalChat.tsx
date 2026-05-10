@@ -35,7 +35,7 @@ export function LegalChat({ matterId }: { matterId?: string }) {
         ...p,
         { role: "assistant", content: data.answer, sources: data.sources },
       ]);
-    } catch (err) {
+    } catch {
       setMessages((p) => [
         ...p,
         { role: "assistant", content: "Error al consultar. Intente nuevamente." },
@@ -57,50 +57,54 @@ export function LegalChat({ matterId }: { matterId?: string }) {
   return (
     <div className="flex flex-col h-full">
       {/* Toggles */}
-      <div className="flex gap-4 px-4 py-2 border-b border-[#1E2A3D] text-xs text-[#94A3B8]">
+      <div className="flex gap-4 px-4 py-2 border-b border-[var(--color-border)] text-xs font-body text-slate">
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={useHyde}
             onChange={(e) => setUseHyde(e.target.checked)}
-            className="accent-[#F59E0B]"
+            className="accent-gold"
           />
           HyDE activado
-          <span className="text-[#94A3B8]" title="Genera un documento hipotético para mejorar búsquedas coloquiales">(?)</span>
+          <span className="text-slate-dark" title="Genera un documento hipotético para mejorar búsquedas coloquiales">(?)</span>
         </label>
-        {!matterId && <span className="text-[#94A3B8]">Buscando en toda la firma</span>}
-        {matterId && <span className="text-[#F59E0B]">Solo esta causa</span>}
+        {!matterId && <span className="text-slate-dark">Buscando en toda la firma</span>}
+        {matterId  && <span className="text-gold">Solo esta causa</span>}
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
-          <p className="text-[#94A3B8] text-sm text-center mt-8">
+          <p className="text-slate text-sm font-body text-center mt-8">
             Realizá una consulta sobre los documentos indexados
           </p>
         )}
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-2xl ${msg.role === "user" ? "bg-[#1E2A3D]" : "bg-[#111827] border border-[#1E2A3D]"} p-4`}>
-              <p className="text-sm text-[#F1F5F9] whitespace-pre-wrap">{msg.content}</p>
+            <div className={`max-w-2xl rounded-lg ${
+              msg.role === "user"
+                ? "bg-navy-light"
+                : "bg-navy-mid border border-[var(--color-border)]"
+            } p-4`}>
+              <p className="text-sm font-body text-cream whitespace-pre-wrap">{msg.content}</p>
               {msg.sources && msg.sources.length > 0 && (
                 <div className="mt-3">
                   <button
                     onClick={() => toggleSources(idx)}
-                    className="text-xs text-[#F59E0B] hover:underline"
+                    className="text-xs font-body text-gold hover:underline"
                   >
                     {expandedSources.has(idx) ? "Ocultar" : "Ver"} fuentes ({msg.sources.length})
                   </button>
                   {expandedSources.has(idx) && (
                     <div className="mt-2 space-y-2">
                       {msg.sources.map((src, si) => (
-                        <div key={si} className="bg-[#0A0F1E] border border-[#1E2A3D] p-3">
-                          <div className="flex justify-between text-xs text-[#94A3B8] mb-1">
-                            <span className="font-medium text-[#F1F5F9]">{src.document_name}</span>
+                        <div key={si} className="bg-navy border border-[var(--color-border)] p-3 rounded-lg">
+                          <div className="flex justify-between text-xs font-body text-slate mb-1">
+                            <span className="font-medium text-cream">{src.document_name}</span>
                             {src.clause_number && <span>Cláusula {src.clause_number}</span>}
                             <span>Score: {(src.relevance_score * 100).toFixed(1)}%</span>
                           </div>
-                          <p className="text-xs text-[#94A3B8] font-mono">{src.chunk_content}</p>
+                          <p className="text-xs font-mono text-slate">{src.chunk_content}</p>
                         </div>
                       ))}
                     </div>
@@ -112,8 +116,8 @@ export function LegalChat({ matterId }: { matterId?: string }) {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-[#111827] border border-[#1E2A3D] p-4">
-              <span className="text-[#F59E0B] text-sm">Consultando...</span>
+            <div className="bg-navy-mid border border-[var(--color-border)] p-4 rounded-lg">
+              <span className="text-gold text-sm font-body">Consultando...</span>
             </div>
           </div>
         )}
@@ -121,18 +125,18 @@ export function LegalChat({ matterId }: { matterId?: string }) {
       </div>
 
       {/* Input */}
-      <div className="border-t border-[#1E2A3D] p-4 flex gap-2">
+      <div className="border-t border-[var(--color-border)] p-4 flex gap-2">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
           placeholder="Consultá sobre los documentos..."
-          className="flex-1 bg-[#111827] border border-[#1E2A3D] px-3 py-2 text-sm text-[#F1F5F9] focus:outline-none focus:border-[#F59E0B]"
+          className="flex-1 bg-navy-mid border border-[var(--color-border)] px-3 py-2 text-sm font-body text-cream rounded-[4px] focus:outline-none focus:border-gold"
         />
         <button
           onClick={handleSend}
           disabled={loading || !input.trim()}
-          className="bg-[#F59E0B] text-[#0A0F1E] px-4 py-2 text-sm font-semibold disabled:opacity-50 hover:bg-amber-400 transition"
+          className="bg-gold text-navy px-4 py-2 text-sm font-body font-semibold rounded-[6px] disabled:opacity-50 hover:bg-gold-soft transition-colors"
         >
           Enviar
         </button>

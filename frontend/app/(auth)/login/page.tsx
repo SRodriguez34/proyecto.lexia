@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -34,19 +36,19 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#0A0F1E]">
+    <main className="min-h-screen flex items-center justify-center bg-navy">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-serif text-[#F59E0B] tracking-tight">LEXIA</h1>
-          <p className="text-[#94A3B8] text-sm mt-1">Plataforma Legal IA</p>
+          <h1 className="text-3xl font-display text-gold tracking-tight">LEXIA</h1>
+          <p className="text-slate text-sm font-body mt-1">Plataforma Legal IA</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-[#111827] border border-[#1E2A3D] p-8 space-y-4"
+          className="bg-navy-mid border border-[var(--color-border)] p-8 space-y-4 rounded-lg"
         >
           <div>
-            <label className="block text-xs text-[#94A3B8] uppercase tracking-widest mb-1">
+            <label className="block text-xs font-body font-medium text-slate uppercase tracking-widest mb-1">
               Email
             </label>
             <input
@@ -54,12 +56,12 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[#0A0F1E] border border-[#1E2A3D] px-3 py-2 text-sm text-[#F1F5F9] focus:outline-none focus:border-[#F59E0B]"
+              className="w-full bg-navy border border-[var(--color-border)] px-3 py-2 text-sm font-body text-cream rounded-[4px] focus:outline-none focus:border-gold"
             />
           </div>
 
           <div>
-            <label className="block text-xs text-[#94A3B8] uppercase tracking-widest mb-1">
+            <label className="block text-xs font-body font-medium text-slate uppercase tracking-widest mb-1">
               Contraseña
             </label>
             <input
@@ -67,18 +69,18 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#0A0F1E] border border-[#1E2A3D] px-3 py-2 text-sm text-[#F1F5F9] focus:outline-none focus:border-[#F59E0B]"
+              className="w-full bg-navy border border-[var(--color-border)] px-3 py-2 text-sm font-body text-cream rounded-[4px] focus:outline-none focus:border-gold"
             />
           </div>
 
           {error && (
-            <p className="text-red-400 text-xs">{error}</p>
+            <p className="text-red-400 text-xs font-body">{error}</p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#F59E0B] text-[#0A0F1E] py-2 text-sm font-semibold uppercase tracking-widest hover:bg-amber-400 transition disabled:opacity-50"
+            className="w-full bg-gold text-navy py-2 text-sm font-body font-semibold uppercase tracking-widest rounded-[6px] hover:bg-gold-soft transition-colors disabled:opacity-50"
           >
             {loading ? "Ingresando..." : "Ingresar"}
           </button>

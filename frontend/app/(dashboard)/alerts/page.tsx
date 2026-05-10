@@ -27,16 +27,16 @@ export default function AlertsPage() {
   return (
     <div className="p-8 max-w-4xl">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-serif text-[#F1F5F9]">Alertas Normativa</h1>
+        <h1 className="text-3xl font-display font-semibold text-cream leading-[1.2]">Alertas Normativa</h1>
         <div className="flex gap-2">
           {(["", "pending", "reviewed"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`text-xs px-3 py-1.5 transition ${
+              className={`text-xs font-body px-3 py-1.5 rounded-[6px] transition-colors ${
                 filter === f
-                  ? "bg-[#F59E0B] text-[#0A0F1E]"
-                  : "border border-[#1E2A3D] text-[#94A3B8] hover:text-[#F1F5F9]"
+                  ? "bg-gold text-navy font-semibold"
+                  : "border border-[var(--color-border)] text-slate hover:text-cream"
               }`}
             >
               {f === "" ? "Todas" : f === "pending" ? "Pendientes" : "Revisadas"}
@@ -46,44 +46,51 @@ export default function AlertsPage() {
       </div>
 
       {alerts.length === 0 && (
-        <p className="text-[#94A3B8] text-sm">No hay alertas {filter ? `con estado "${filter}"` : ""}.</p>
+        <p className="text-slate text-sm font-body">
+          No hay alertas {filter ? `con estado "${filter}"` : ""}.
+        </p>
       )}
 
       <div className="space-y-3">
         {alerts.map((alert) => {
           const item = alert.normativa_items;
           return (
-            <div key={alert.id} className={`bg-[#111827] border p-5 ${
-              alert.status === "pending" ? "border-[#F59E0B]" : "border-[#1E2A3D]"
-            }`}>
+            <div
+              key={alert.id}
+              className={`bg-navy-mid border p-5 rounded-lg ${
+                alert.status === "pending"
+                  ? "border-gold"
+                  : "border-[var(--color-border)]"
+              }`}
+            >
               <div className="flex justify-between items-start gap-4">
                 <div className="flex-1">
                   {item && (
                     <>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs text-[#94A3B8] uppercase tracking-widest">
+                        <span className="text-xs font-body font-medium text-slate uppercase tracking-widest">
                           {SOURCE_LABELS[item.source] ?? item.source}
                         </span>
                         {item.published_at && (
-                          <span className="text-xs text-[#94A3B8]">
+                          <span className="text-xs font-body text-slate-dark">
                             · {new Date(item.published_at).toLocaleDateString("es-AR")}
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-[#F1F5F9] mb-2">{item.title}</p>
+                      <p className="text-sm font-body text-cream mb-2">{item.title}</p>
                       {item.url && (
                         <a
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-[#F59E0B] hover:underline"
+                          className="text-xs font-body text-gold hover:underline"
                         >
                           Ver fuente
                         </a>
                       )}
                     </>
                   )}
-                  <p className="text-xs text-[#94A3B8] mt-2">
+                  <p className="text-xs font-body text-slate-dark mt-2">
                     {alert.affected_documents.length} documento{alert.affected_documents.length !== 1 ? "s" : ""} afectado{alert.affected_documents.length !== 1 ? "s" : ""}
                   </p>
                 </div>
@@ -93,20 +100,20 @@ export default function AlertsPage() {
                     <>
                       <button
                         onClick={() => handleStatus(alert.id, "reviewed")}
-                        className="text-xs text-green-400 border border-green-700 px-3 py-1 hover:bg-green-900/20 transition"
+                        className="text-xs font-body text-green-400 border border-green-700 px-3 py-1 rounded-[6px] hover:bg-green-900/20 transition-colors"
                       >
                         Marcar revisada
                       </button>
                       <button
                         onClick={() => handleStatus(alert.id, "dismissed")}
-                        className="text-xs text-[#94A3B8] border border-[#1E2A3D] px-3 py-1 hover:text-[#F1F5F9] transition"
+                        className="text-xs font-body text-slate border border-[var(--color-border)] px-3 py-1 rounded-[6px] hover:text-cream transition-colors"
                       >
                         Descartar
                       </button>
                     </>
                   )}
                   {alert.status !== "pending" && (
-                    <span className="text-xs text-[#94A3B8] uppercase tracking-widest">{alert.status}</span>
+                    <span className="text-xs font-body text-slate-dark uppercase tracking-widest">{alert.status}</span>
                   )}
                 </div>
               </div>

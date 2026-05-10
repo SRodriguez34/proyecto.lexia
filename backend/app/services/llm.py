@@ -4,6 +4,17 @@ from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
+_VALID_INTENTS = frozenset({
+    "consulta_documento",
+    "ingesta",
+    "resumen_causa",
+    "extraccion_plazos",
+    "normativa",
+    "redaccion",
+    "comparacion",
+    "soporte",
+})
+
 
 def _get_model(fast: bool = False):
     settings = get_settings()
@@ -61,6 +72,40 @@ async def generate_matter_summary(content: str) -> str:
         f"Documentos:\n{content}"
     )
     response = model.generate_content(prompt)
+    return response.text
+
+
+async def classify_intent(message: str) -> str:
+    """Classify a user message into one of 8 routing intents using Gemini Flash."""
+    model = _get_model(fast=True)
+    prompt = (
+        "Clasificá esta solicitud en una categoría: "
+        "consulta_documento | ingesta | resumen_causa | extraccion_plazos | "
+        "normativa | redaccion | comparacion | soporte. "
+        "Solo devolvé la categoría, sin explicación.\n\n"
+        f"Solicitud: {message}"
+    )
+    response = model.generate_content(prompt)
+    intent = response.text.strip().lower()
+    if intent not in _VALID_INTENTS:
+        logger.warning('{"step": "classify_intent", "raw": "%s", "fallback": "soporte"}', intent)
+        return "soporte"
+    return intent
+
+
+async def generate_with_skill(
+    message: str,
+    skill_content: str,
+    context: str = "",
+    fast: bool = False,
+) -> str:
+    """Generate a response using a skill.md file as the system prompt."""
+    model = _get_model(fast=fast)
+    parts = [skill_content]
+    if context:
+        parts.append(f"\nContexto disponible:\n{context}")
+    parts.append(f"\nSolicitud del usuario: {message}")
+    response = model.generate_content("\n".join(parts))
     return response.text
 
 
