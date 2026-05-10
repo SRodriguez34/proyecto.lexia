@@ -30,3 +30,7 @@ out/
 
 # Test artifacts
 rag_report.json
+
+# Credentials files
+supabase.txt
+*.credentials.txt
