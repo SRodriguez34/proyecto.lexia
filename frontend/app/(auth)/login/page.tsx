@@ -32,7 +32,7 @@ export default function LoginPage() {
     const firmId = data.user.user_metadata?.firm_id;
     if (firmId) sessionStorage.setItem("firm_id", firmId);
 
-    router.push("/");
+    router.push("/query");
   }
 
   return (
