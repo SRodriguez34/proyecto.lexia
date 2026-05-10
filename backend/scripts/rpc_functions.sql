@@ -13,7 +13,7 @@ LANGUAGE sql STABLE AS $$
            1 - (embedding <=> query_embedding) AS similarity
     FROM chunks
     WHERE firm_id = firm_id_param
-      AND status IS DISTINCT FROM 'deleted'
+      --AND status IS DISTINCT FROM 'deleted'
     ORDER BY embedding <=> query_embedding
     LIMIT match_count;
 $$;
