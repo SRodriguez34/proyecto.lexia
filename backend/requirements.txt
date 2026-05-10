@@ -16,7 +16,5 @@ python-dotenv==1.0.1
 beautifulsoup4==4.12.3
 lxml==5.3.0
 pydantic-settings==2.6.1
-ragas==0.2.6
-datasets==3.2.0
 pytest==8.3.4
 pytest-asyncio==0.24.0
