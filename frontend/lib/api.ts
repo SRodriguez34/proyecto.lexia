@@ -84,6 +84,41 @@ export const api = {
 
   // Analytics
   usageStats: () => request<{ data: UsageSummary }>("/analytics/usage"),
+
+  // Bulk Review
+  startBulkReview: (body: { document_ids: string[]; checklist: string[] }) =>
+    request("/bulk/start", { method: "POST", body: JSON.stringify(body) }),
+  getBulkResults: (id: string) => request(`/bulk/${id}/results`),
+  listBulkReviews: () => request("/bulk"),
+
+  // Feedback
+  submitFeedback: (body: {
+    query_id: string;
+    query_text: string;
+    retrieved_chunk_ids: string[];
+    rating: 1 | -1;
+    comment?: string;
+  }) => request("/feedback", { method: "POST", body: JSON.stringify(body) }),
+
+  // Templates
+  listTemplates: () => request("/templates"),
+  createTemplate: (body: {
+    name: string;
+    description?: string | null;
+    materia?: string | null;
+    checklist: { punto: string }[];
+    is_public?: boolean;
+  }) => request("/templates", { method: "POST", body: JSON.stringify(body) }),
+  cloneTemplate: (id: string) =>
+    request(`/templates/${id}/clone`, { method: "POST", body: JSON.stringify({}) }),
+  deleteTemplate: (id: string) =>
+    request(`/templates/${id}`, { method: "DELETE" }),
+
+  // Research
+  startResearch: (body: { query: string; materia?: string }) =>
+    request("/research/start", { method: "POST", body: JSON.stringify(body) }),
+  getResearch: (id: string) => request(`/research/${id}`),
+  listResearch: () => request("/research"),
 };
 
 // Types

@@ -1,12 +1,15 @@
 import Link from "next/link";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/matters", label: "Causas" },
-  { href: "/documents", label: "Documentos" },
-  { href: "/query", label: "Consulta IA" },
-  { href: "/research", label: "Deep Research" },
-  { href: "/alerts", label: "Alertas" },
+  { href: "/dashboard",   label: "Dashboard" },
+  { href: "/matters",     label: "Causas" },
+  { href: "/documents",   label: "Documentos" },
+  { href: "/query",       label: "Consulta IA" },
+  { href: "/research",    label: "Deep Research" },
+  { href: "/bulk",        label: "Bulk Review" },
+  { href: "/templates",   label: "Templates" },
+  { href: "/alerts",      label: "Alertas" },
+  { href: "/analytics",   label: "Métricas" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

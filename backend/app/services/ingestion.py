@@ -166,7 +166,26 @@ async def ingest_document(
         texts = [c["content"] for c in raw_chunks]
         embeddings = _embed_batch(texts)
 
-        # STEP 4 — Store chunks
+        # STEP 4a — Build parent chunks (group by clause/section for broader context)
+        section_groups: dict[str, list[int]] = {}
+        for i, chunk in enumerate(raw_chunks):
+            section_key = chunk["metadata"].get("clause_number") or chunk["metadata"].get("section") or f"section_{i}"
+            section_groups.setdefault(section_key, []).append(i)
+
+        parent_id_map: dict[str, str] = {}
+        for section_key, indices in section_groups.items():
+            parent_content = "\n\n".join(raw_chunks[j]["content"] for j in indices)
+            p_resp = supabase.table("parent_chunks").insert({
+                "document_id": document_id,
+                "firm_id": firm_id,
+                "content": parent_content,
+                "chunk_index": indices[0],
+                "metadata": {"section": section_key, "child_count": len(indices)},
+            }).execute()
+            if p_resp.data:
+                parent_id_map[section_key] = p_resp.data[0]["id"]
+
+        # STEP 4b — Store child chunks with parent_chunk_id
         rows = [
             {
                 "document_id": document_id,
@@ -175,11 +194,15 @@ async def ingest_document(
                 "embedding": embeddings[i],
                 "chunk_index": i,
                 "metadata": raw_chunks[i]["metadata"],
+                "parent_chunk_id": parent_id_map.get(
+                    raw_chunks[i]["metadata"].get("clause_number")
+                    or raw_chunks[i]["metadata"].get("section")
+                    or f"section_{i}"
+                ),
             }
             for i in range(len(raw_chunks))
         ]
 
-        # Batch insert in groups of 500
         for i in range(0, len(rows), 500):
             supabase.table("chunks").insert(rows[i : i + 500]).execute()
 

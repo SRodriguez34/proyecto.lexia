@@ -7,6 +7,7 @@ import cohere
 from app.core.config import get_settings
 from app.core.supabase import get_supabase
 from app.models.chunk import ChunkWithScore
+from app.services.cache import get_cached_embedding, store_embedding
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +49,15 @@ def expand_query(query: str) -> str:
 
 
 def _embed_query(query: str) -> list[float]:
+    cached = get_cached_embedding(query)
+    if cached:
+        return cached
     settings = get_settings()
     client = voyageai.Client(api_key=settings.voyage_api_key)
     result = client.embed([query], model=settings.embedding_model, input_type="query")
-    return result.embeddings[0]
+    embedding = result.embeddings[0]
+    store_embedding(query, embedding)
+    return embedding
 
 
 def _semantic_search(
@@ -149,6 +155,7 @@ async def hybrid_search(
     firm_id: str,
     matter_id: str | None = None,
     scope: str = "matter",
+    materia: str | None = None,
     top_k: int = 20,
 ) -> list[ChunkWithScore]:
     settings = get_settings()
@@ -168,6 +175,11 @@ async def hybrid_search(
     )
 
     fused = _reciprocal_rank_fusion(semantic_results, keyword_results, k=settings.rrf_k)
+
+    # F2.5: filter by materia if specified
+    if materia:
+        fused = [c for c in fused if c.get("metadata", {}).get("materia") == materia or c.get("materia") == materia] or fused
+
     candidates = fused[: settings.retrieval_top_k]
 
     if not candidates:

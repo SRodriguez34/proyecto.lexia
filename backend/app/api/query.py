@@ -35,6 +35,7 @@ class QueryRequest(BaseModel):
     matter_id: str | None = None
     use_hyde: bool = False
     scope: str = "matter"
+    materia: str | None = None
 
 
 class RouteRequest(BaseModel):
@@ -60,6 +61,7 @@ async def query_documents(
         firm_id=firm_id,
         matter_id=body.matter_id,
         scope=body.scope,
+        materia=body.materia,
     )
 
     if not chunks:
