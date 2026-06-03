@@ -2,12 +2,13 @@ import uuid
 import logging
 import pathlib
 from typing import Any
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
 from app.services.retrieval import hybrid_search
 from app.services.llm import generate_hyde, synthesize_answer, classify_intent, generate_with_skill
 from app.core.supabase import get_supabase
+from app.core.security import get_current_firm
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -16,13 +17,16 @@ _SKILLS_DIR = pathlib.Path(__file__).parents[2] / "lexia-skills"
 
 # (flow_directory, use_fast_model)
 _FLOW_MAP: dict[str, tuple[str, bool]] = {
-    "consulta_documento": ("flujo-rag",         False),
-    "resumen_causa":      ("flujo-resumen",      False),
-    "extraccion_plazos":  ("flujo-plazos",       True),
-    "normativa":          ("flujo-normativa",    True),
-    "redaccion":          ("flujo-redaccion",    False),
-    "comparacion":        ("flujo-comparacion",  False),
-    "soporte":            ("flujo-soporte",      True),
+    "consulta_documento": ("flujo-rag",           False),
+    "resumen_causa":      ("flujo-resumen",        False),
+    "extraccion_plazos":  ("flujo-plazos",         True),
+    "normativa":          ("flujo-normativa",      True),
+    "redaccion":          ("flujo-redaccion",      False),
+    "comparacion":        ("flujo-comparacion",    False),
+    "soporte":            ("flujo-soporte",        True),
+    "deep_research":      ("flujo-deep-research",  False),
+    "bulk_review":        ("flujo-bulk-review",    True),
+    "workflow_template":  ("flujo-templates",      True),
 }
 
 
@@ -30,6 +34,7 @@ class QueryRequest(BaseModel):
     query: str
     matter_id: str | None = None
     use_hyde: bool = False
+    scope: str = "matter"
 
 
 class RouteRequest(BaseModel):
@@ -41,7 +46,7 @@ class RouteRequest(BaseModel):
 @router.post("")
 async def query_documents(
     body: QueryRequest,
-    x_firm_id: str = Header(...),
+    firm_id: str = Depends(get_current_firm),
 ) -> dict[str, Any]:
     search_query = body.query
 
@@ -52,8 +57,9 @@ async def query_documents(
 
     chunks = await hybrid_search(
         query=search_query,
-        firm_id=x_firm_id,
+        firm_id=firm_id,
         matter_id=body.matter_id,
+        scope=body.scope,
     )
 
     if not chunks:
@@ -183,7 +189,7 @@ async def _gather_context(
 @router.post("/route")
 async def route_request(
     body: RouteRequest,
-    x_firm_id: str = Header(...),
+    firm_id: str = Depends(get_current_firm),
 ) -> dict[str, Any]:
     intent = await classify_intent(body.message)
     logger.info('{"step": "route_request", "intent": "%s"}', intent)
@@ -203,12 +209,12 @@ async def route_request(
             "metadata": {"flow": "flujo-ingesta", "intent": intent},
         }
 
-    flow_name, use_fast = _FLOW_MAP[intent]
+    flow_name, use_fast = _FLOW_MAP.get(intent, _FLOW_MAP["soporte"])
     skill_content = _load_skill(flow_name)
 
     context = await _gather_context(
         intent=intent,
-        firm_id=x_firm_id,
+        firm_id=firm_id,
         matter_id=body.matter_id,
         document_id=body.document_id,
         message=body.message,

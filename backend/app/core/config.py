@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     # App
     jwt_secret: str
     environment: str = "development"
+    allowed_origins: str = "http://localhost:3000"
+    internal_api_key: str = ""
 
     # Email
     resend_api_key: str = ""

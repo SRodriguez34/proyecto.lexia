@@ -1,6 +1,16 @@
+import secrets
 import jwt
-from fastapi import HTTPException, Header
+from fastapi import HTTPException, Header, Depends
 from app.core.config import get_settings
+
+
+async def verify_internal_key(x_internal_key: str = Header(...)) -> None:
+    """Validate requests from internal callers (e.g. GitHub Actions)."""
+    settings = get_settings()
+    if not settings.internal_api_key:
+        raise HTTPException(status_code=500, detail="Internal API key not configured")
+    if not secrets.compare_digest(x_internal_key, settings.internal_api_key):
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 
 async def get_current_firm(authorization: str = Header(...)) -> str:

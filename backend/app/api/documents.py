@@ -1,7 +1,8 @@
-from fastapi import APIRouter, UploadFile, File, Header, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from typing import Any
 from app.services.ingestion import ingest_document
 from app.core.supabase import get_supabase
+from app.core.security import get_current_firm
 
 router = APIRouter()
 
@@ -11,8 +12,8 @@ ALLOWED_TYPES = {"pdf", "docx", "doc"}
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
-    x_firm_id: str = Header(...),
     matter_id: str | None = None,
+    firm_id: str = Depends(get_current_firm),
 ) -> dict[str, Any]:
     ext = (file.filename or "").rsplit(".", 1)[-1].lower()
     if ext not in ALLOWED_TYPES:
@@ -22,19 +23,19 @@ async def upload_document(
     document_id = await ingest_document(
         file_bytes=contents,
         filename=file.filename or "document",
-        firm_id=x_firm_id,
+        firm_id=firm_id,
         matter_id=matter_id,
     )
     return {"data": {"document_id": document_id}, "error": None, "metadata": {}}
 
 
 @router.get("")
-async def list_documents(x_firm_id: str = Header(...)) -> dict[str, Any]:
+async def list_documents(firm_id: str = Depends(get_current_firm)) -> dict[str, Any]:
     supabase = get_supabase()
     resp = (
         supabase.table("documents")
         .select("*, matters(caratula, client_name)")
-        .eq("firm_id", x_firm_id)
+        .eq("firm_id", firm_id)
         .neq("status", "deleted")
         .order("created_at", desc=True)
         .execute()
@@ -44,14 +45,14 @@ async def list_documents(x_firm_id: str = Header(...)) -> dict[str, Any]:
 
 @router.delete("/{document_id}")
 async def delete_document(
-    document_id: str, x_firm_id: str = Header(...)
+    document_id: str, firm_id: str = Depends(get_current_firm)
 ) -> dict[str, Any]:
     supabase = get_supabase()
     resp = (
         supabase.table("documents")
         .update({"status": "deleted"})
         .eq("id", document_id)
-        .eq("firm_id", x_firm_id)
+        .eq("firm_id", firm_id)
         .execute()
     )
     if not resp.data:

@@ -1,20 +1,21 @@
 from typing import Any
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from app.core.supabase import get_supabase
+from app.core.security import get_current_firm, verify_internal_key
 
 router = APIRouter()
 
 
 @router.get("")
 async def list_alerts(
-    x_firm_id: str = Header(...),
     status: str | None = None,
+    firm_id: str = Depends(get_current_firm),
 ) -> dict[str, Any]:
     supabase = get_supabase()
     q = (
         supabase.table("alerts")
         .select("*, normativa_items(title, source, url, published_at)")
-        .eq("firm_id", x_firm_id)
+        .eq("firm_id", firm_id)
         .order("created_at", desc=True)
     )
     if status:
@@ -27,7 +28,7 @@ async def list_alerts(
 async def update_alert_status(
     alert_id: str,
     status: str,
-    x_firm_id: str = Header(...),
+    firm_id: str = Depends(get_current_firm),
 ) -> dict[str, Any]:
     if status not in ("reviewed", "dismissed"):
         raise HTTPException(status_code=400, detail="Invalid status")
@@ -36,7 +37,7 @@ async def update_alert_status(
         supabase.table("alerts")
         .update({"status": status})
         .eq("id", alert_id)
-        .eq("firm_id", x_firm_id)
+        .eq("firm_id", firm_id)
         .execute()
     )
     if not resp.data:
@@ -45,13 +46,16 @@ async def update_alert_status(
 
 
 @router.post("/notify")
-async def notify_alerts(x_firm_id: str = Header(...)) -> dict[str, Any]:
+async def notify_alerts(
+    firm_id: str,
+    _: None = Depends(verify_internal_key),
+) -> dict[str, Any]:
     """Trigger email digests for pending alerts (called by GitHub Actions)."""
     supabase = get_supabase()
     resp = (
         supabase.table("alerts")
         .select("*, normativa_items(title, source, url)")
-        .eq("firm_id", x_firm_id)
+        .eq("firm_id", firm_id)
         .eq("status", "pending")
         .execute()
     )

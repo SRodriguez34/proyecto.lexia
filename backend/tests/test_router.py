@@ -49,6 +49,21 @@ _CASES: list[tuple[str, str, str]] = [
         "soporte",
         "flujo-soporte",
     ),
+    (
+        "Investigá toda la jurisprudencia sobre despido durante período de prueba en Argentina",
+        "deep_research",
+        "flujo-deep-research",
+    ),
+    (
+        "Revisá estos 50 contratos de locación y decime cuáles tienen cláusula de indexación",
+        "bulk_review",
+        "flujo-bulk-review",
+    ),
+    (
+        "Creá un template de revisión para contratos de trabajo según la LCT",
+        "workflow_template",
+        "flujo-templates",
+    ),
 ]
 
 
@@ -72,7 +87,7 @@ def test_route_returns_correct_flow(message: str, mocked_intent: str, expected_f
         response = _run(
             route_request(
                 body=RouteRequest(message=message),
-                x_firm_id="firm-test-123",
+                firm_id="firm-test-123",
             )
         )
 
@@ -94,7 +109,7 @@ def test_route_data_shape(message: str, mocked_intent: str, expected_flow: str):
         response = _run(
             route_request(
                 body=RouteRequest(message=message),
-                x_firm_id="firm-test-123",
+                firm_id="firm-test-123",
             )
         )
 
@@ -120,7 +135,7 @@ def test_ingesta_never_calls_llm():
         response = _run(
             route_request(
                 body=RouteRequest(message="Subí este PDF"),
-                x_firm_id="firm-test-123",
+                firm_id="firm-test-123",
             )
         )
 
@@ -141,7 +156,7 @@ def test_unknown_intent_falls_back_to_soporte():
         response = _run(
             route_request(
                 body=RouteRequest(message="algo extraño"),
-                x_firm_id="firm-test-123",
+                firm_id="firm-test-123",
             )
         )
 

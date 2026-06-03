@@ -5,7 +5,8 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import documents, query, matters, alerts
+from app.api import documents, query, matters, alerts, auth, onboarding, analytics
+from app.core.config import get_settings
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,12 +16,15 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="LEXIA API", version="0.1.0")
 
+_settings = get_settings()
+_allowed_origins = [o.strip() for o in _settings.allowed_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 # In-memory rate limiter: 100 req/min per firm_id
@@ -58,6 +62,9 @@ app.include_router(documents.router, prefix="/documents", tags=["documents"])
 app.include_router(query.router, prefix="/query", tags=["query"])
 app.include_router(matters.router, prefix="/matters", tags=["matters"])
 app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(onboarding.router, prefix="/onboarding", tags=["onboarding"])
+app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 
 
 @app.get("/health")

@@ -1,7 +1,8 @@
 from typing import Any
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from app.models.matter import MatterCreate, MatterUpdate
 from app.core.supabase import get_supabase
+from app.core.security import get_current_firm
 from app.services.llm import generate_matter_summary
 
 router = APIRouter()
@@ -9,24 +10,24 @@ router = APIRouter()
 
 @router.post("")
 async def create_matter(
-    body: MatterCreate, x_firm_id: str = Header(...)
+    body: MatterCreate, firm_id: str = Depends(get_current_firm)
 ) -> dict[str, Any]:
     supabase = get_supabase()
     resp = (
         supabase.table("matters")
-        .insert({**body.model_dump(), "firm_id": x_firm_id})
+        .insert({**body.model_dump(), "firm_id": firm_id})
         .execute()
     )
     return {"data": resp.data[0], "error": None, "metadata": {}}
 
 
 @router.get("")
-async def list_matters(x_firm_id: str = Header(...)) -> dict[str, Any]:
+async def list_matters(firm_id: str = Depends(get_current_firm)) -> dict[str, Any]:
     supabase = get_supabase()
     resp = (
         supabase.table("matters")
         .select("*, documents(id, status, created_at)")
-        .eq("firm_id", x_firm_id)
+        .eq("firm_id", firm_id)
         .order("created_at", desc=True)
         .execute()
     )
@@ -40,13 +41,13 @@ async def list_matters(x_firm_id: str = Header(...)) -> dict[str, Any]:
 
 
 @router.get("/{matter_id}")
-async def get_matter(matter_id: str, x_firm_id: str = Header(...)) -> dict[str, Any]:
+async def get_matter(matter_id: str, firm_id: str = Depends(get_current_firm)) -> dict[str, Any]:
     supabase = get_supabase()
     resp = (
         supabase.table("matters")
         .select("*, documents(*)")
         .eq("id", matter_id)
-        .eq("firm_id", x_firm_id)
+        .eq("firm_id", firm_id)
         .single()
         .execute()
     )
@@ -57,7 +58,7 @@ async def get_matter(matter_id: str, x_firm_id: str = Header(...)) -> dict[str, 
 
 @router.patch("/{matter_id}")
 async def update_matter(
-    matter_id: str, body: MatterUpdate, x_firm_id: str = Header(...)
+    matter_id: str, body: MatterUpdate, firm_id: str = Depends(get_current_firm)
 ) -> dict[str, Any]:
     supabase = get_supabase()
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
@@ -67,7 +68,7 @@ async def update_matter(
         supabase.table("matters")
         .update(updates)
         .eq("id", matter_id)
-        .eq("firm_id", x_firm_id)
+        .eq("firm_id", firm_id)
         .execute()
     )
     if not resp.data:
@@ -76,14 +77,14 @@ async def update_matter(
 
 
 @router.get("/{matter_id}/summary")
-async def get_matter_summary(matter_id: str, x_firm_id: str = Header(...)) -> dict[str, Any]:
+async def get_matter_summary(matter_id: str, firm_id: str = Depends(get_current_firm)) -> dict[str, Any]:
     supabase = get_supabase()
 
     docs_resp = (
         supabase.table("documents")
         .select("id, filename")
         .eq("matter_id", matter_id)
-        .eq("firm_id", x_firm_id)
+        .eq("firm_id", firm_id)
         .eq("status", "indexed")
         .execute()
     )

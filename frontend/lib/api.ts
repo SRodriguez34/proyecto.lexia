@@ -1,26 +1,26 @@
+import { supabase } from "@/lib/supabase";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-function getFirmId(): string {
-  if (typeof window === "undefined") return "";
-  return sessionStorage.getItem("firm_id") ?? "";
+async function getAuthToken(): Promise<string> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? "";
 }
 
-async function request<T>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = await getAuthToken();
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      "X-Firm-ID": getFirmId(),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(error.error ?? res.statusText);
+    throw new Error(error.detail ?? error.error ?? res.statusText);
   }
 
   return res.json() as Promise<T>;
@@ -28,14 +28,15 @@ async function request<T>(
 
 export const api = {
   // Documents
-  uploadDocument: (file: File, matterId?: string) => {
+  uploadDocument: async (file: File, matterId?: string) => {
+    const token = await getAuthToken();
     const form = new FormData();
     form.append("file", file);
     return fetch(
       `${BASE_URL}/documents/upload${matterId ? `?matter_id=${matterId}` : ""}`,
       {
         method: "POST",
-        headers: { "X-Firm-ID": getFirmId() },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: form,
       }
     ).then((r) => r.json());
@@ -55,7 +56,7 @@ export const api = {
     request<{ data: { summary: string } }>(`/matters/${id}/summary`),
 
   // Query
-  query: (body: { query: string; matter_id?: string; use_hyde?: boolean }) =>
+  query: (body: { query: string; matter_id?: string; use_hyde?: boolean; scope?: string }) =>
     request<{ data: QueryResult }>("/query", {
       method: "POST",
       body: JSON.stringify(body),
@@ -66,6 +67,23 @@ export const api = {
     request<{ data: Alert[] }>(`/alerts${status ? `?status=${status}` : ""}`),
   updateAlertStatus: (id: string, status: string) =>
     request(`/alerts/${id}?status=${status}`, { method: "PATCH" }),
+
+  // Auth
+  me: () => request<{ data: Firm }>("/auth/me"),
+
+  // Onboarding
+  getOnboardingStatus: () =>
+    request<{ data: OnboardingStatus }>("/onboarding/status"),
+  saveOnboardingStep: (body: {
+    step: number;
+    provincia?: string;
+    materia_principal?: string;
+    completed?: boolean;
+  }) =>
+    request("/onboarding/step", { method: "PATCH", body: JSON.stringify(body) }),
+
+  // Analytics
+  usageStats: () => request<{ data: UsageSummary }>("/analytics/usage"),
 };
 
 // Types
@@ -114,5 +132,40 @@ export interface Alert {
     source: string;
     url: string;
     published_at: string;
+  };
+}
+
+export interface Firm {
+  id: string;
+  name: string;
+  plan: string;
+  plan_limits: Record<string, number>;
+  usage_current: Record<string, number>;
+  onboarding_completed: boolean;
+  onboarding_step: number;
+  created_at: string;
+}
+
+export interface OnboardingStatus {
+  onboarding_completed: boolean;
+  onboarding_step: number;
+  materia_principal: string | null;
+  provincia: string | null;
+}
+
+export interface UsageSummary {
+  firm_name: string;
+  plan: string;
+  plan_limits: Record<string, number>;
+  this_month: {
+    queries: number;
+    documents_indexed: number;
+    alerts_generated: number;
+    logins: number;
+    estimated_hours_saved: number;
+  };
+  totals: {
+    documents: number;
+    active_matters: number;
   };
 }

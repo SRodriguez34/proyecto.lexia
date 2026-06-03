@@ -1,38 +1,61 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
+  const [firmName, setFirmName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const res = await fetch(`${BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, firm_name: firmName }),
     });
 
-    if (authError || !data.session) {
-      setError(authError?.message ?? "Error al iniciar sesión");
+    const body = await res.json();
+
+    if (!res.ok) {
+      setError(body.detail ?? "Error al registrarse");
       setLoading(false);
       return;
     }
 
-    const firmId = data.user.user_metadata?.firm_id;
-    if (firmId) sessionStorage.setItem("firm_id", firmId);
+    setSuccess(true);
+    setLoading(false);
+  }
 
-    router.push("/dashboard");
+  if (success) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-navy">
+        <div className="w-full max-w-sm text-center bg-navy-mid border border-[var(--color-border)] p-8 rounded-lg">
+          <h1 className="text-xl font-display text-cream mb-3">Revisá tu email</h1>
+          <p className="text-slate text-sm font-body">
+            Te enviamos un enlace de verificación a <strong className="text-cream">{email}</strong>.
+            Hacé click en el enlace para activar tu cuenta y luego ingresá.
+          </p>
+          <Link
+            href="/login"
+            className="mt-6 inline-block text-gold text-sm font-body hover:text-gold-soft"
+          >
+            Ir al login
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -40,13 +63,27 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-display text-gold tracking-tight">LEXIA</h1>
-          <p className="text-slate text-sm font-body mt-1">Plataforma Legal IA</p>
+          <p className="text-slate text-sm font-body mt-1">Creá tu cuenta</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
           className="bg-navy-mid border border-[var(--color-border)] p-8 space-y-4 rounded-lg"
         >
+          <div>
+            <label className="block text-xs font-body font-medium text-slate uppercase tracking-widest mb-1">
+              Nombre del estudio
+            </label>
+            <input
+              type="text"
+              required
+              value={firmName}
+              onChange={(e) => setFirmName(e.target.value)}
+              className="w-full bg-navy border border-[var(--color-border)] px-3 py-2 text-sm font-body text-cream rounded-[4px] focus:outline-none focus:border-gold"
+              placeholder="Ej. García & Asociados"
+            />
+          </div>
+
           <div>
             <label className="block text-xs font-body font-medium text-slate uppercase tracking-widest mb-1">
               Email
@@ -67,29 +104,28 @@ export default function LoginPage() {
             <input
               type="password"
               required
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-navy border border-[var(--color-border)] px-3 py-2 text-sm font-body text-cream rounded-[4px] focus:outline-none focus:border-gold"
             />
           </div>
 
-          {error && (
-            <p className="text-red-400 text-xs font-body">{error}</p>
-          )}
+          {error && <p className="text-red-400 text-xs font-body">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-gold text-navy py-2 text-sm font-body font-semibold uppercase tracking-widest rounded-[6px] hover:bg-gold-soft transition-colors disabled:opacity-50"
           >
-            {loading ? "Ingresando..." : "Ingresar"}
+            {loading ? "Registrando…" : "Crear cuenta"}
           </button>
 
           <p className="text-center text-slate text-xs font-body pt-2">
-            ¿No tenés cuenta?{" "}
-            <a href="/register" className="text-gold hover:text-gold-soft">
-              Registrarse
-            </a>
+            ¿Ya tenés cuenta?{" "}
+            <Link href="/login" className="text-gold hover:text-gold-soft">
+              Ingresar
+            </Link>
           </p>
         </form>
       </div>

@@ -17,6 +17,9 @@ Optimiza tokens enviando solo el contexto necesario para cada tipo de tarea.
 | Redactar documento / cláusula | flujo-redaccion | Gemini 2.5 Pro |
 | Comparar documentos | flujo-comparacion | Gemini 2.5 Pro |
 | Pregunta de soporte / ayuda | flujo-soporte | Gemini 2.0 Flash |
+| Investigación jurídica multi-paso | flujo-deep-research | Gemini 2.5 Pro |
+| Revisión masiva de documentos | flujo-bulk-review | Gemini 2.0 Flash |
+| Gestión de templates de workflow | flujo-templates | Gemini 2.0 Flash |
 
 ## Protocolo de Clasificación
 
@@ -25,7 +28,8 @@ Optimiza tokens enviando solo el contexto necesario para cada tipo de tarea.
 2. Clasificar intención con Gemini 2.0 Flash (1 token call, mínimo costo):
    prompt: "Clasificá esta solicitud en una categoría: consulta_documento |
    ingesta | resumen_causa | extraccion_plazos | normativa | redaccion |
-   comparacion | soporte. Solo devolvé la categoría, sin explicación."
+   comparacion | soporte | deep_research | bulk_review | workflow_template.
+   Solo devolvé la categoría, sin explicación."
 
 3. Cargar skill.md del flujo correspondiente como system prompt del agente
 

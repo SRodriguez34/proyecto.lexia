@@ -112,14 +112,18 @@ async def hybrid_search(
     query: str,
     firm_id: str,
     matter_id: str | None = None,
+    scope: str = "matter",
     top_k: int = 20,
 ) -> list[ChunkWithScore]:
     settings = get_settings()
 
+    # scope="firm" overrides matter_id to search across all firm docs
+    effective_matter_id = matter_id if scope == "matter" else None
+
     embedding = _embed_query(query)
 
-    semantic_results = _semantic_search(embedding, firm_id, matter_id, top_k)
-    keyword_results = _keyword_search(query, firm_id, matter_id, top_k)
+    semantic_results = _semantic_search(embedding, firm_id, effective_matter_id, top_k)
+    keyword_results = _keyword_search(query, firm_id, effective_matter_id, top_k)
 
     logger.info(
         '{"step": "search", "semantic_hits": %d, "keyword_hits": %d}',
