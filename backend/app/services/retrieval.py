@@ -10,6 +10,42 @@ from app.models.chunk import ChunkWithScore
 
 logger = logging.getLogger(__name__)
 
+# Diccionario de sinónimos jurídicos argentinos — expande queries coloquiales
+_LEGAL_SYNONYMS: dict[str, list[str]] = {
+    "despido": ["rescisión laboral", "art 245 LCT", "indemnización por despido"],
+    "prescripción": ["caducidad", "art 2560 CCyC", "plazo de prescripción"],
+    "contrato": ["acuerdo", "convenio", "locación"],
+    "locación": ["alquiler", "arrendamiento", "art 1187 CCyC"],
+    "honorarios": ["aranceles", "retribución profesional"],
+    "embargo": ["medida cautelar", "inhibición general de bienes"],
+    "apelación": ["recurso de apelación", "segunda instancia"],
+    "demanda": ["acción judicial", "presentación judicial"],
+    "prueba": ["evidencia", "elementos probatorios", "ofrecimiento de prueba"],
+    "sentencia": ["fallo", "resolución judicial", "decisión"],
+    "indemnización": ["resarcimiento", "reparación de daños"],
+    "multa": ["sanción", "penalidad", "punición"],
+    "acreedor": ["titular del crédito", "parte acreedora"],
+    "deudor": ["obligado", "parte deudora"],
+    "poder": ["mandato", "representación", "apoderamiento"],
+    "sociedad": ["persona jurídica", "empresa", "SRL", "SA"],
+    "quiebra": ["concurso preventivo", "insolvencia", "LCQ"],
+    "fuero laboral": ["CNAT", "juzgado laboral", "tribunal del trabajo"],
+    "CCyC": ["Código Civil y Comercial", "ley 26994"],
+    "LCT": ["Ley de Contrato de Trabajo", "ley 20744"],
+}
+
+
+def expand_query(query: str) -> str:
+    """Agrega sinónimos jurídicos argentinos a la query para mejorar recall."""
+    q_lower = query.lower()
+    expansions = []
+    for term, synonyms in _LEGAL_SYNONYMS.items():
+        if term in q_lower:
+            expansions.extend(synonyms[:2])
+    if expansions:
+        return f"{query} {' '.join(expansions)}"
+    return query
+
 
 def _embed_query(query: str) -> list[float]:
     settings = get_settings()
@@ -120,10 +156,11 @@ async def hybrid_search(
     # scope="firm" overrides matter_id to search across all firm docs
     effective_matter_id = matter_id if scope == "matter" else None
 
-    embedding = _embed_query(query)
+    expanded = expand_query(query)
+    embedding = _embed_query(expanded)
 
     semantic_results = _semantic_search(embedding, firm_id, effective_matter_id, top_k)
-    keyword_results = _keyword_search(query, firm_id, effective_matter_id, top_k)
+    keyword_results = _keyword_search(expanded, firm_id, effective_matter_id, top_k)
 
     logger.info(
         '{"step": "search", "semantic_hits": %d, "keyword_hits": %d}',

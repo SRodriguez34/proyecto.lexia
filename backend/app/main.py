@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import documents, query, matters, alerts, auth, onboarding, analytics
+from app.api import documents, query, matters, alerts, auth, onboarding, analytics, research
 from app.core.config import get_settings
 
 logging.basicConfig(
@@ -65,6 +65,7 @@ app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(onboarding.router, prefix="/onboarding", tags=["onboarding"])
 app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+app.include_router(research.router, prefix="/research", tags=["research"])
 
 
 @app.get("/health")

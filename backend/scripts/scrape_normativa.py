@@ -41,8 +41,71 @@ def _scrape_infoleg() -> list[dict]:
 
 
 def _scrape_saij() -> list[dict]:
-    # SAIJ does not offer a public RSS; return empty for now
-    return []
+    """Scrape SAIJ legislación reciente via su buscador público."""
+    items = []
+    # SAIJ search endpoint for recent nacional legislation
+    SAIJ_API = "https://www.saij.gob.ar/buscador/busqueda-avanzada"
+    params = {
+        "tipo-novedad": "D,L,R",   # Decretos, Leyes, Resoluciones
+        "cant": "20",
+        "pag": "1",
+    }
+    try:
+        resp = httpx.get(SAIJ_API, params=params, timeout=30, follow_redirects=True,
+                         headers={"User-Agent": "Mozilla/5.0 (compatible; LexiaBot/1.0)"})
+        soup = BeautifulSoup(resp.text, "html.parser")
+        # Parse search results list
+        for article in soup.select("article.resultado, li.resultado, div.resultado-buscador"):
+            title_tag = article.select_one("h2 a, h3 a, .titulo a")
+            desc_tag  = article.select_one(".resumen, .descripcion, p")
+            date_tag  = article.select_one(".fecha, time, .date")
+            if not title_tag:
+                continue
+            href = title_tag.get("href", "")
+            url  = f"https://www.saij.gob.ar{href}" if href.startswith("/") else href
+            items.append({
+                "source": "saij",
+                "title": title_tag.get_text(strip=True),
+                "content": desc_tag.get_text(strip=True) if desc_tag else "",
+                "url": url or None,
+                "published_at": date_tag.get_text(strip=True) if date_tag else None,
+            })
+    except Exception as exc:
+        print(f'{{"step": "scrape_error", "source": "saij", "error": "{exc}"}}')
+
+    # Fallback: Boletín Oficial API (argentina.gob.ar)
+    if not items:
+        items.extend(_scrape_boletin_oficial())
+
+    return items
+
+
+def _scrape_boletin_oficial() -> list[dict]:
+    """Scrape normas del Boletín Oficial via argentina.gob.ar."""
+    items = []
+    try:
+        today = datetime.utcnow()
+        url = (
+            "https://www.boletinoficial.gob.ar/normas/buscar"
+            f"?q=&categoria=&seccion=primera&desde={today.strftime('%d/%m/%Y')}"
+            "&hasta=&page=0&size=20"
+        )
+        resp = httpx.get(url, timeout=30, follow_redirects=True,
+                         headers={"Accept": "application/json",
+                                  "User-Agent": "Mozilla/5.0 (compatible; LexiaBot/1.0)"})
+        if resp.headers.get("content-type", "").startswith("application/json"):
+            data = resp.json()
+            for norma in (data.get("normas") or data.get("content") or []):
+                items.append({
+                    "source": "saij",
+                    "title": norma.get("titulo") or norma.get("title") or "",
+                    "content": norma.get("descripcion") or norma.get("sumario") or "",
+                    "url": norma.get("url") or norma.get("link"),
+                    "published_at": norma.get("fecha") or norma.get("date"),
+                })
+    except Exception as exc:
+        print(f'{{"step": "scrape_error", "source": "boletin_oficial", "error": "{exc}"}}')
+    return items
 
 
 def _fingerprint(item: dict) -> str:

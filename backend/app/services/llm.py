@@ -34,6 +34,9 @@ _VALID_INTENTS = frozenset({
     "redaccion",
     "comparacion",
     "soporte",
+    "deep_research",
+    "bulk_review",
+    "workflow_template",
 })
 
 
@@ -115,7 +118,8 @@ async def classify_intent(message: str) -> str:
     prompt = (
         "Clasificá esta solicitud en una categoría: "
         "consulta_documento | ingesta | resumen_causa | extraccion_plazos | "
-        "normativa | redaccion | comparacion | soporte. "
+        "normativa | redaccion | comparacion | soporte | "
+        "deep_research | bulk_review | workflow_template. "
         "Solo devolvé la categoría, sin explicación.\n\n"
         f"Solicitud: {message}"
     )

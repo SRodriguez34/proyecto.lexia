@@ -5,6 +5,7 @@ const NAV = [
   { href: "/matters", label: "Causas" },
   { href: "/documents", label: "Documentos" },
   { href: "/query", label: "Consulta IA" },
+  { href: "/research", label: "Deep Research" },
   { href: "/alerts", label: "Alertas" },
 ];
 
