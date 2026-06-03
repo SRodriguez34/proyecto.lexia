@@ -34,3 +34,5 @@ rag_report.json
 # Credentials files
 supabase.txt
 *.credentials.txt
+.vercel/
+files (1)/

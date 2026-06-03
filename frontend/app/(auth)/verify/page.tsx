@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function VerifyPage() {
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+function VerifyContent() {
   const params = useSearchParams();
   const token = params.get("token") ?? "";
   const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
   const [message, setMessage] = useState("");
-
-  const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
   useEffect(() => {
     if (!token) {
@@ -33,7 +33,7 @@ export default function VerifyPage() {
         setStatus("error");
         setMessage("Error de conexión. Intentá de nuevo.");
       });
-  }, [token, BASE_URL]);
+  }, [token]);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-navy">
@@ -61,5 +61,17 @@ export default function VerifyPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center bg-navy">
+        <p className="text-slate text-sm font-body">Verificando…</p>
+      </main>
+    }>
+      <VerifyContent />
+    </Suspense>
   );
 }
